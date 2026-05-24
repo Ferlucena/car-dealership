@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CarsService } from './cars.service';
+import { CreateCarDto } from './dto/create-car.dto';
 
 @Controller('cars')
 export class CarsController {
@@ -19,28 +20,30 @@ export class CarsController {
 
     // @Param() es un decorador que se utiliza para extraer parámetros de la ruta. 
     // En este caso, @Param('id') indica que el valor del parámetro id en la ruta /cars/:id se pasará como argumento al método getCarById(). 
-    // El tipo de dato del parámetro id se especifica como number gracias al uso de ParseIntPipe, que convierte automáticamente el valor de la ruta a un número.
+    // El tipo de dato del parámetro id se especifica como string gracias al uso de ParseUUIDPipe, que valida automáticamente que el valor de la ruta sea un UUID.
     @Get(':id')
-    getCarById(@Param('id', ParseIntPipe) id: number) { 
+    getCarById(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) { 
         console.log(id);
         return this.carsService.findOneById(id);
     }
 
     @Post()
-    createCar() {
-        return {
-            'message': 'Car created',
-            'method': 'POST'
-        };
+    //@UsePipes(ValidationPipe) 
+    //Este decorador se utiliza en un niver superior para aplicar un pipe de validación a todas las rutas del controlador.
+    createCar( @Body() createCarDto: CreateCarDto) {
+        return createCarDto;
     }
     
     @Patch(':id')
-    updateCar(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
+    updateCar(
+        @Param('id', ParseUUIDPipe) id: string, 
+        @Body() body: any) 
+    {
         return body;
     }
     
     @Delete(':id')
-    deleteCar(@Param('id', ParseIntPipe) id: number) {
+    deleteCar(@Param('id', ParseUUIDPipe) id: string) {
         return {
             'message': `Car with id ${id} deleted`,
             'method': 'DELETE'
